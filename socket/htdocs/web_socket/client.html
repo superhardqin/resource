@@ -1,0 +1,71 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>WebSocket Demo</title>
+    <script type="text/javascript" src="/static/jquery.1.9.0.js"></script>
+</head>
+<body>
+<input type="text" class="_j_input" placeholder="Message…" />
+<hr />
+<pre class="_j_output"></pre>
+
+<script>
+    var host = 'ws://39.108.53.75:8895',
+        socket = null,
+        input  = $("._j_input"),
+        output = $("._j_output");
+
+    var print  = function (message) {
+        var samp       = document.createElement('samp');
+        samp.innerHTML = message + '\n';
+        output.append(samp);
+        return;
+    };
+
+    try {
+        socket = new WebSocket(host);
+        socket.onopen = function () {
+            print('connection is opened');
+            input.focus();
+            return;
+        };
+        socket.onmessage = function (msg) {
+            print(msg.data);
+            return;
+        };
+        socket.onclose = function () {
+            print('connection is closed');
+            return;
+        };
+        socket.onerror = function () {
+            print('erro');
+            return;
+        };
+    } catch (e) {
+        console.log(e);
+    }
+
+
+
+    $(function(){
+        $("body").delegate("._j_input", "keyup", function(evt){
+            if (13 === evt.keyCode) {
+                var msg = input.val();
+                if (!msg) {
+                    return;
+                }
+                try {
+                    socket.send(msg);
+                    input.val("");
+                    input.focus();
+                } catch (e) {
+                    console.log(e);
+                }
+
+                return;
+            }
+        });
+    });
+</script>
+</body>
+</html>
