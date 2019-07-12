@@ -1,0 +1,234 @@
+<script type="text/javascript">
+  $(function(){
+    /*自定义的鼠标停留dom 200ms后响应事件*/
+    $.fn.moveStopWait = function(callback){
+            return this.each(function() {
+                var x = 0,y = 0,x1 = 0,y1 = 0,isRun = false,si,self = this;
+                var sif = function(){
+                    si = setInterval(function(){
+                        if(x == x1 && y ==y1){
+                            clearInterval(si);
+                            isRun = false;
+                            callback && callback.call(self);
+                        }
+                        x = x1;
+                        y = y1;
+                    }, 200);
+                }
+                $(this).mousemove(function(e){
+                    x1 = e.pageX;
+                    y1 = e.pageY;
+                    !isRun && sif(), isRun = true;
+                }).mouseout(function(){
+                    clearInterval(si);
+                    isRun = false;
+                });
+            });
+    }
+    /*滑动到指定位置(扩展锚点)*/
+    $(".to_middle").click(function(){
+      var top = "400px";
+      $("html, body").animate({
+            scrollTop: top
+        }, {
+            duration: 500,
+            easing: "swing"
+        });
+        return false;
+    });
+    /*windon.open()弹窗关闭子窗口后父窗口响应事件（微博分享成功后返回父窗口操作）*/
+    var newWin,timer,is_open =false;
+    function IfWindowClosed() {
+        if (newWin.closed == true) {
+            afterShareSuccess();
+            is_open = false;
+            window.clearInterval(timer);
+        }
+    }
+    //分享弹窗click
+    $("._j_wb_share").click(function(){
+        if(!is_open){
+            is_open = true;
+            newWin = window.open ('share.html') //eval(sns_share_show('wb', shareInfo.share_title, shareInfo.share_content, shareInfo.share_url, express_share_img));//蚂蜂窝扩展分享方法
+            timer=setInterval(function(){
+                IfWindowClosed();
+            },100);
+        }
+
+    });
+    //关闭子窗口后回调方法
+    afterShareSuccess(){
+
+    }
+    /*背景跟随鼠标移动*/
+    //bn-astro背景dom
+    $(".bn-astro").mousemove(function(e){
+            var broW = $(document).width();
+            var mouseL = e.pageX;
+            var cssL = parseInt(((mouseL/broW)*100 - 50)*-1);
+            var starL = cssL/5;
+            var backL = cssL/10;
+            var star_dom = $(".bn-astro .star-layer1");
+            var backgroud_dom = $(".bn-astro .star-layer2");
+            star_dom.css("left",starL+"%")
+            backgroud_dom.css("left", backL+"%");
+
+     });
+    /*图片轮播*/
+    var cfg = {
+        scroll:500,//滚动时间
+        stop:6000,//停留时间
+        num:3,//图片数
+        width:320,//图片宽度
+        btn_id:"travel_btn",//滚动按钮id
+        btn_dom:"span",
+        scroll_id:"travel_scroll",//滚动区域id
+        index:0,
+        time:0
+    };
+    //banner轮播实现
+	function scrollObj(cfg){
+	    this.cfg=cfg;
+	    var funObj = this;
+	    $("#"+ this.cfg.btn_id + ",#" + this.cfg.scroll_id).hover(function(){
+	        funObj.stop_auto();
+	    },function(){
+	        funObj.start_auto();
+	    });
+	    $("#" + this.cfg.btn_id +" " + this.cfg.btn_dom).each(function(i,j){
+	        $(this).click(function(){
+	            funObj.go_to(i);
+	        });
+	    });
+	};
+	//轮播封装
+	scrollObj.prototype = {
+	    run : function(){
+	        var funObj = this;
+	        if(parseInt($("#" + this.cfg.scroll_id).css("left"))>-(this.cfg.width*(this.cfg.num-1)))
+	        {
+	            this.cfg.index++;
+	            $("#" + funObj.cfg.scroll_id).animate({left : '-=' +funObj.cfg.width+ 'px'}, funObj.cfg.scroll,function(){
+	                $("#" + funObj.cfg.btn_id + " " + funObj.cfg.btn_dom + ".on").removeClass("on");
+	                $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom).eq(funObj.cfg.index).addClass("on");
+	                funObj.start_auto();
+	            });
+	        }
+	        else
+	        {
+	            this.cfg.index=0;
+	            $("#" + funObj.cfg.scroll_id).css("left", "0px");
+	            $("#" + funObj.cfg.scroll_id).animate({left : '0px'}, funObj.cfg.scroll,function(){
+
+	                $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom + ".on").removeClass("on");
+	                $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom).eq(funObj.cfg.index).addClass("on");
+	                funObj.start_auto();
+	            });
+	        }
+	    },
+	    go_to : function(index){
+	        this.cfg.index=index;
+	        var left=this.cfg.width*index;
+	        var funObj = this;
+	        $("#" + funObj.cfg.scroll_id).animate({left: '-'+left+'px'}, funObj.cfg.scroll,function(){
+	            $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom + ".on").removeClass("on");
+	            $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom).eq(funObj.cfg.index).addClass("on");
+	        });
+	    },
+	    start_auto : function(){
+	        this.stop_auto();
+	        var funObj = this;
+	        this.cfg.time=setTimeout(function(){
+	            funObj.run();
+	        },this.cfg.stop);
+	    },
+	    stop_auto : function(){
+	        clearTimeout(this.cfg.time);
+	    }
+	}
+	//轮播实例化
+    var img_scroll = new scrollObj(cfg);
+    img_scroll.start_auto();
+    //点
+    $("#"+cfg.btn_id+" "+cfg.btn_dom).live("click", function(){
+        var index = $(this).index();
+        img_scroll.go_to(index);
+    });
+    //翻
+    if(cfg.prev_id){
+        $("#"+cfg.prev_id).live("click", function(){
+            img_scroll.stop_auto();
+            var current_i = $("#" + cfg.btn_id +" " +cfg.btn_dom+ ".on").index();
+            if(current_i == 0){
+                current_i = cfg.num-1;
+            }else{
+                current_i = Math.max(current_i-1, 0);
+            }
+            img_scroll.go_to(current_i);
+        });
+    }
+    if(cfg.next_id){
+        $("#"+cfg.next_id).live("click", function(){
+            img_scroll.stop_auto();
+            var current_i = $("#" + cfg.btn_id +" " +cfg.btn_dom+ ".on").index();
+            if(current_i == cfg.num-1){
+                current_i = 0;
+            }else{
+                current_i = Math.min(current_i+1, cfg.num);
+            }
+            img_scroll.go_to(current_i);
+        });
+    }
+    //微信二维码分享链接（朋友圈等..）
+    var imgUrl = 'http://images.mafengwo.net/images/post/notes_propaganda/share2.jpg';
+    var lineLink = 'http://www.mafengwo.cn/activity/propaganda/';
+    var descContent = "上线啦！个性的头图、完备的相册、智能的路线，只为帮你更美地记录这个世界。";
+    var shareTitle = '游记新模板上线';
+    var appid = '';
+    function shareFriend() {
+        WeixinJSBridge.invoke('sendAppMessage',{
+            "appid": appid,
+            "img_url": imgUrl,
+            "img_width": "300",
+            "img_height": "300",
+            "link": lineLink,
+            "desc": descContent,
+            "title": shareTitle
+        }, function(res) {
+            _report('send_msg', res.err_msg);
+        })
+    }
+    function shareTimeline() {
+        WeixinJSBridge.invoke('shareTimeline',{
+            "img_url": imgUrl,
+            "img_width": "300",
+            "img_height": "300",
+            "link": lineLink,
+            "desc": descContent,
+            "title": shareTitle
+        }, function(res) {
+            _report('timeline', res.err_msg);
+        });
+    }
+    function shareWeibo() {
+        WeixinJSBridge.invoke('shareWeibo',{
+            "content": descContent,
+            "url": lineLink
+        }, function(res) {
+            _report('weibo', res.err_msg);
+        });
+    }
+    document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+        WeixinJSBridge.on('menu:share:appmessage', function(argv){
+            shareFriend();
+        });
+        WeixinJSBridge.on('menu:share:timeline', function(argv){
+            shareTimeline();
+        });
+        WeixinJSBridge.on('menu:share:weibo', function(argv){
+            shareWeibo();
+        });
+    }, false);
+  });
+
+</script>

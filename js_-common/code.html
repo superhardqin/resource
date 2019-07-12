@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<title>图片</title>
+<script language="javascript" src="js/jquery-1.8.1.min.js?1396454658" type="text/javascript"></script>
+</head>
+<body>
+<script type="text/javascript">
+    $(function(){
+	    function scrollObj(cfg){
+	        this.cfg=cfg;
+	        var funObj = this;
+	        $("#"+ this.cfg.btn_id + ",#" + this.cfg.scroll_id).hover(function(){
+	            funObj.stop_auto();
+	        },function(){
+	            funObj.start_auto();
+	        });
+	        $("#" + this.cfg.btn_id +" " + this.cfg.btn_dom).each(function(i,j){
+	            $(this).click(function(){
+	                funObj.go_to(i);
+	            });
+	        });
+	    };
+	    scrollObj.prototype = {    	   
+		        run : function(){
+		        	var funObj = this;
+			        if(parseInt($("#" + this.cfg.scroll_id).css("left"))>-(this.cfg.width*(this.cfg.num-1)))
+			        {        	
+			            this.cfg.index++;
+			            $("#" + funObj.cfg.scroll_id).animate({left : '-=' +funObj.cfg.width+ 'px'}, funObj.cfg.scroll,function(){
+			                $("#" + funObj.cfg.btn_id + " " + funObj.cfg.btn_dom + ".on").removeClass("on");
+			                $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom).eq(funObj.cfg.index).addClass("on");
+			                funObj.start_auto();
+			            });
+			        }
+			        else
+			        {	
+			            this.cfg.index=0; 
+			            $("#" + funObj.cfg.scroll_id).css("left", "0px");
+			            $("#" + funObj.cfg.scroll_id).animate({left : '0px'}, funObj.cfg.scroll,function(){
+			            	
+			                $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom + ".on").removeClass("on");
+			                $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom).eq(funObj.cfg.index).addClass("on");
+			                funObj.start_auto();
+			            });
+			        }
+		        },
+		        go_to : function(index){
+			        this.cfg.index=index;
+			        var left=this.cfg.width*index;
+			        var funObj = this;
+			        $("#" + funObj.cfg.scroll_id).animate({left: '-'+left+'px'}, funObj.cfg.scroll,function(){
+			            $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom + ".on").removeClass("on");
+			            $("#" + funObj.cfg.btn_id +" " + funObj.cfg.btn_dom).eq(funObj.cfg.index).addClass("on");
+			        });
+		        },
+		        start_auto : function(){
+			        this.stop_auto();
+			        var funObj = this;
+			        this.cfg.time=setTimeout(function(){
+			        	funObj.run();
+			        },this.cfg.stop);
+		        },
+		        stop_auto : function(){
+			        clearTimeout(this.cfg.time);
+		        }
+		    }
+	        var cfg = {
+	            scroll:500,//滚动时间
+	            stop:3000,//停留时间
+	            num:5,//图片数
+	            width:980,//图片宽度
+	            btn_id:"car_btn",//滚动按钮id
+	            btn_dom:"a",
+	            scroll_id:"car_scroll",//滚动区域id
+	            index:0,
+	            time:0
+	        };
+		    var img_scroll = new scrollObj(cfg);
+		    img_scroll.start_auto();
+    });
+
+</script>
+        <ul class="c-silde" id="car_scroll" style="position: absolute;">
+            <li>
+                <img src="" />
+            </li>
+        </ul>
+        <div class="btn-slide" id="car_btn">
+            <a class="on" href="javascript:void(0);"></a>
+            <a href="javascript:void(0);"></a>
+        </div>
+</body>
+</html>
